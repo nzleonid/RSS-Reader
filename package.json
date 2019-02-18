@@ -1,0 +1,38 @@
+{
+  "name": "rss_nzleonid",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "rss": "dist/bin/rss.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nzleonid/project-lvl3-s402.git"
+  },
+  "keywords": [
+    "rss",
+    "reader"
+  ],
+  "author": "Kononov Leonid",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nzleonid/project-lvl3-s402/issues"
+  },
+  "homepage": "https://github.com/nzleonid/project-lvl3-s402#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.3",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.14.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.16.0"
+  },
+  "dependencies": {}
+}
