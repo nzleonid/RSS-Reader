@@ -1,7 +1,5 @@
-install:
-	npm install
-start:
-	npx babel-node -- src/bin/rss.js
+develop:
+	npx webpack-dev-server
 publish:
 	npm publish
 lint:
@@ -10,4 +8,4 @@ test:
 	npm test
 build:
 	rm -rf dist
-	npm run build
+	NODE_ENV=production npx webpack
