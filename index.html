@@ -4,15 +4,30 @@
     <title>RSS Reader</title>
   </head>
   <body>
-    <div class="jumbotron" style="background-color: #FFB273">
-      <h1 class="display-4" style="color: #A64B00">RSS Reader</h1>
+    <div class="jumbotron">
+      <h1 class="display-4">RSS Reader</h1>
       <p class="lead">
-        <input type="text" class="form-control">
-      <p>
-      <p class="lead">
-        <button type="button" class="btn btn-primary" style="border-color: #A64B00; background-color: #FF7400">Submit</button>
+      <div class="col-md-4 mb-3">
+        <input type="text" class="form-control" id="address" value="" autofocus>
+        <span class="text-danger" id="error"></span>
       </p>
+      <p class="lead">
+        <button type="button" class="btn btn-primary" id="submit">Submit</button>
+      </p>
+      </div>
     </div>
-    <div id="point"></div>
+
+    <div class="row">
+      <div class="col-2">
+        <div class="list-group" id="list-tab" role="tablist">
+          <a class="list-group-item list-group-item-action active" data-toggle="list" href="#list-1" role="tab">All feeds</a>
+        </div>
+      </div>
+  <div class="col-8">
+    <div class="tab-content" id="nav-tabContent">
+      <div class="tab-pane fade show active" id="list-1" role="tabpanel" aria-labelledby="list-home-list"></div>
+    </div>
+  </div>
+</div>
   </body>
 </html>
