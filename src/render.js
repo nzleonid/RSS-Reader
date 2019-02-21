@@ -4,7 +4,8 @@ export default (transmittedState) => {
   const tabContent = document.querySelector('#nav-tabContent');
   const a = document.createElement('a');
   a.classList.add('list-group-item', 'list-group-item-action');
-  a.textContent = state.feed.querySelector('title').textContent;
+  const nameFeed = state.feed.querySelector('title').textContent;
+  a.textContent = nameFeed;
   a.setAttribute('data-toggle', 'list');
   a.setAttribute('role', 'tab');
   state.numberList += 1;
@@ -45,11 +46,13 @@ export default (transmittedState) => {
     const modalDiv = document.createElement('div');
     modalDiv.classList.add('modal', 'fade', `bd-example-modal-${state.numberButton}${state.numberList}`);
     modalDiv.setAttribute('aria-hidden', 'true');
-    modalDiv.innerHTML = `<div class="modal-dialog"><div class="modal-content">${description.textContent}</div></div>`;
+    modalDiv.innerHTML = `<div class="modal-dialog"><div class="modal-content">
+                          <div class="modal-header"><h4>${title.textContent}</h4></div>
+                          <div class="modal-body">${description.textContent}</div></div></div>`;
     const modalDivMain = document.createElement('div');
     modalDivMain.classList.add('modal', 'fade', `bd-example-modal-main${state.numberButton}`);
     modalDivMain.setAttribute('aria-hidden', 'true');
-    modalDivMain.innerHTML = `<div class="modal-dialog"><div class="modal-content">${description.textContent}</div></div>`;
+    modalDivMain.innerHTML = modalDiv.innerHTML;
 
     state.numberButton += 1;
     li.appendChild(aElement);
@@ -61,8 +64,10 @@ export default (transmittedState) => {
     ul.appendChild(li);
     ulMain.appendChild(liMain);
   });
-
+  const h2 = document.createElement('h2');
+  h2.textContent = nameFeed;
   mainFeed.insertBefore(ulMain, mainFeed.firstChild);
+  mainFeed.insertBefore(h2, mainFeed.firstChild);
   newFeed.appendChild(ul);
   tabContent.appendChild(newFeed);
   return state.numberList;
