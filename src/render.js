@@ -1,14 +1,14 @@
-export default (transmittedState) => {
-  const state = transmittedState;
+const getUniqueId = url => url.replace(/[^a-z0-9]/gi, '');
+
+export default (state) => {
   const listTab = document.querySelector('#list-tab');
   const tabContent = document.querySelector('#nav-tabContent');
   const a = document.createElement('a');
   a.classList.add('list-group-item', 'list-group-item-action');
-  const nameFeed = state.feed.querySelector('title').textContent;
+  const [nameFeed, ...itemList] = state.feed;
   a.textContent = nameFeed;
   a.setAttribute('data-toggle', 'list');
   a.setAttribute('role', 'tab');
-  state.numberList += 1;
   a.setAttribute('href', `#list-${state.numberList}`);
   listTab.appendChild(a);
 
@@ -20,41 +20,35 @@ export default (transmittedState) => {
   const ul = document.createElement('ul');
   ul.classList.add('list-group');
   const ulMain = ul.cloneNode(true);
-
-  const itemList = state.feed.querySelectorAll('item');
   itemList.forEach((element) => {
-    const title = element.querySelector('title');
-    const link = element.querySelector('link');
-    const description = element.querySelector('description');
-
+    const [title, link, description] = element;
+    const id = getUniqueId(link);
     const li = document.createElement('li');
     li.classList.add('list-group-item');
     const liMain = li.cloneNode(true);
     const aElement = document.createElement('a');
-    aElement.setAttribute('href', link.textContent);
-    aElement.textContent = title.textContent;
+    aElement.setAttribute('href', link);
+    aElement.textContent = title;
     const aElementMain = aElement.cloneNode(true);
 
     const buttonElement = document.createElement('button');
     buttonElement.classList.add('btn', 'btn-primary', 'float-right');
-    buttonElement.setAttribute('data-target', `.bd-example-modal-${state.numberButton}${state.numberList}`);
+    buttonElement.setAttribute('data-target', `#minor-${id}`);
     buttonElement.setAttribute('data-toggle', 'modal');
     buttonElement.textContent = 'Description';
     const buttonElementMain = buttonElement.cloneNode(true);
-    buttonElementMain.setAttribute('data-target', `.bd-example-modal-main${state.numberButton}`);
+    buttonElementMain.setAttribute('data-target', `#main-${id}`);
 
     const modalDiv = document.createElement('div');
-    modalDiv.classList.add('modal', 'fade', `bd-example-modal-${state.numberButton}${state.numberList}`);
+    modalDiv.classList.add('modal', 'fade');
+    modalDiv.setAttribute('id', `minor-${id}`);
     modalDiv.setAttribute('aria-hidden', 'true');
     modalDiv.innerHTML = `<div class="modal-dialog"><div class="modal-content">
-                          <div class="modal-header"><h4>${title.textContent}</h4></div>
-                          <div class="modal-body">${description.textContent}</div></div></div>`;
-    const modalDivMain = document.createElement('div');
-    modalDivMain.classList.add('modal', 'fade', `bd-example-modal-main${state.numberButton}`);
-    modalDivMain.setAttribute('aria-hidden', 'true');
-    modalDivMain.innerHTML = modalDiv.innerHTML;
+                          <div class="modal-header"><h4>${title}</h4></div>
+                          <div class="modal-body">${description}</div></div></div>`;
+    const modalDivMain = modalDiv.cloneNode(true);
+    modalDivMain.setAttribute('id', `main-${id}`);
 
-    state.numberButton += 1;
     li.appendChild(aElement);
     li.appendChild(buttonElement);
     li.appendChild(modalDiv);
@@ -66,9 +60,9 @@ export default (transmittedState) => {
   });
   const h2 = document.createElement('h2');
   h2.textContent = nameFeed;
+
   mainFeed.insertBefore(ulMain, mainFeed.firstChild);
   mainFeed.insertBefore(h2, mainFeed.firstChild);
   newFeed.appendChild(ul);
   tabContent.appendChild(newFeed);
-  return state.numberList;
 };

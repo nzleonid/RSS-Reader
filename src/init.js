@@ -12,10 +12,9 @@ export default () => {
     causeOfError: '',
     listFeed: [],
     inputAndSubmit: '',
-    feed: '',
+    feed: [],
     connection: '',
     numberList: 1,
-    numberButton: 1,
   };
 
   const input = document.querySelector('#address');
@@ -41,7 +40,7 @@ export default () => {
   });
 
   watch(state, 'feed', () => {
-    state.numberList = render(state);
+    render(state);
   });
 
   const parse = (dom) => {
@@ -50,7 +49,16 @@ export default () => {
     if (!doc.querySelector('rss')) {
       return 'error';
     }
-    return doc;
+    const nameFeed = doc.querySelector('title').textContent;
+    const [...itemList] = doc.querySelectorAll('item');
+    const arrayData = itemList.reduce((acc, item) => {
+      const title = item.querySelector('title').textContent;
+      const link = item.querySelector('link').textContent;
+      const description = item.querySelector('description').textContent;
+      const currentData = [title, link, description];
+      return [...acc, currentData];
+    }, [nameFeed]);
+    return arrayData;
   };
 
   const submit = document.querySelector('#submit');
@@ -60,15 +68,16 @@ export default () => {
       state.inputAndSubmit = 'disabled';
       axios.get(`http://cors-anywhere.herokuapp.com/${state.currentFeed}`)
         .then((response) => {
-          const dom = parse(response.data);
-          if (dom === 'error') {
+          const data = parse(response.data);
+          if (data === 'error') {
             state.inputAndSubmit = 'enabled';
             state.inputCheckValid = 'invalid';
             state.causeOfError = 'This address is not RSS feed.';
           } else {
             state.inputAndSubmit = 'enabled';
             state.inputCheckValid = '';
-            state.feed = dom;
+            state.numberList += 1;
+            state.feed = data;
           }
         })
         .catch(() => {
