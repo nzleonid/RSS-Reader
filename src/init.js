@@ -9,11 +9,9 @@ export default () => {
   const state = {
     inputCheckValid: '',
     currentFeed: '',
-    causeOfError: '',
     listFeed: [],
     inputAndSubmit: '',
     feed: [],
-    connection: '',
     numberList: 1,
   };
 
@@ -21,20 +19,16 @@ export default () => {
   const spanError = document.querySelector('#error');
   input.addEventListener('input', (e) => {
     if (isURL(e.target.value) && !state.listFeed.includes(e.target.value)) {
-      state.causeOfError = '';
       state.inputCheckValid = 'valid';
       state.currentFeed = e.target.value;
     }
     if (!isURL(e.target.value)) {
-      state.causeOfError = 'Invalid URL';
-      state.inputCheckValid = 'invalid';
+      state.inputCheckValid = 'invalid url';
     }
     if (state.listFeed.includes(e.target.value)) {
-      state.causeOfError = 'This feed has already been added';
-      state.inputCheckValid = 'invalid';
+      state.inputCheckValid = 'feed has already';
     }
     if (e.target.value.length === 0) {
-      state.causeOfError = '';
       state.inputCheckValid = '';
     }
   });
@@ -43,9 +37,9 @@ export default () => {
     render(state);
   });
 
-  const parse = (dom) => {
+  const parse = (str) => {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(dom, 'application/xml');
+    const doc = parser.parseFromString(str, 'application/xml');
     if (!doc.querySelector('rss')) {
       return 'error';
     }
@@ -60,19 +54,18 @@ export default () => {
     }, [nameFeed]);
     return arrayData;
   };
-
+  const proxy = 'http://cors-anywhere.herokuapp.com/';
   const submit = document.querySelector('#submit');
   submit.addEventListener('click', () => {
     if (state.inputCheckValid === 'valid' && !state.listFeed.includes(state.currentFeed)) {
       state.listFeed = [state.currentFeed, ...state.listFeed];
       state.inputAndSubmit = 'disabled';
-      axios.get(`http://cors-anywhere.herokuapp.com/${state.currentFeed}`)
+      axios.get(`${proxy}${state.currentFeed}`)
         .then((response) => {
           const data = parse(response.data);
           if (data === 'error') {
             state.inputAndSubmit = 'enabled';
-            state.inputCheckValid = 'invalid';
-            state.causeOfError = 'This address is not RSS feed.';
+            state.inputCheckValid = 'its not rss';
           } else {
             state.inputAndSubmit = 'enabled';
             state.inputCheckValid = '';
@@ -81,14 +74,13 @@ export default () => {
           }
         })
         .catch(() => {
-          state.causeOfError = 'Network error, try again';
           state.inputAndSubmit = 'enabled';
-          state.inputCheckValid = 'invalid';
+          state.inputCheckValid = 'network error';
         });
     }
   });
   watch(state, 'inputAndSubmit', () => {
-    if (state.inputAndSubmit === 'enabled' && state.inputCheckValid === 'invalid') {
+    if (state.inputAndSubmit === 'enabled' && state.inputCheckValid !== 'valid') {
       input.removeAttribute('disabled', 'disabled');
       submit.removeAttribute('disabled', 'disabled');
       submit.innerHTML = 'Submit';
@@ -108,12 +100,67 @@ export default () => {
 
   watch(state, 'inputCheckValid', () => {
     input.classList.remove('is-valid', 'is-invalid');
-    spanError.textContent = state.causeOfError;
-    if (state.inputCheckValid === 'valid') {
-      input.classList.add('is-valid');
-    }
-    if (state.inputCheckValid === 'invalid') {
-      input.classList.add('is-invalid');
+
+    switch (state.inputCheckValid) {
+      case 'network error':
+        spanError.textContent = 'Network error, try again';
+        input.classList.add('is-invalid');
+        break;
+      case 'its not rss':
+        spanError.textContent = 'This address is not RSS feed';
+        submit.setAttribute('disabled', 'disabled');
+        input.classList.add('is-invalid');
+        break;
+      case 'feed has already':
+        spanError.textContent = 'This feed has already been added';
+        submit.setAttribute('disabled', 'disabled');
+        input.classList.add('is-invalid');
+        break;
+      case 'invalid url':
+        spanError.textContent = 'Invalid URL';
+        submit.setAttribute('disabled', 'disabled');
+        input.classList.add('is-invalid');
+        break;
+      case 'valid':
+        spanError.textContent = '';
+        submit.removeAttribute('disabled', 'disabled');
+        input.classList.add('is-valid');
+        break;
+      default:
+        spanError.textContent = '';
+        submit.removeAttribute('disabled', 'disabled');
+        break;
     }
   });
+
+  const splitArray = (array, part, acc = []) => {
+    if (array.length === 0) {
+      return acc;
+    }
+    return splitArray(array.slice(part), part, [...acc, array.slice(0, part)]);
+  };
+
+  const checkUpdate = (listFeed) => {
+    const amountFeedArray = 10;
+    const splitListFeed = splitArray(listFeed, amountFeedArray);
+
+    splitListFeed.forEach((feeds) => {
+      const promises = feeds.map(feed => axios.get(`${proxy}${feed}`)
+        .then(response => parse(response.data)));
+      const promise = Promise.all(promises);
+      promise.then(([itemsArray]) => {
+        const [title, ...items] = itemsArray;
+        const mainFeed = document.querySelector('#list-1');
+        const [...a] = mainFeed.querySelectorAll('a');
+        const allLinksInFeed = a.map(element => element.getAttribute('href'));
+
+        const newFeed = items.filter(item => !allLinksInFeed.includes(item[1]));
+        if (newFeed.length !== 0) {
+          state.feed = [title, ...newFeed];
+        }
+      });
+    });
+    setTimeout(checkUpdate, 5000, state.listFeed);
+  };
+  setTimeout(checkUpdate, 5000, state.listFeed);
 };
