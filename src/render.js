@@ -3,8 +3,8 @@ const getUniqueId = url => url.replace(/[^a-z0-9]/gi, '');
 export default (state) => {
   const listTab = document.querySelector('#list-tab');
   const tabContent = document.querySelector('#nav-tabContent');
-
-  const [nameFeed, ...itemList] = state.feed;
+  const { nameFeed } = state.feeds[0][0];
+  const [...itemList] = state.feeds[0];
   const mainFeed = document.querySelector('#list-1');
   const defineUl = () => {
     if (!document.querySelector(`#list-${state.numberList}`)) {
@@ -26,7 +26,7 @@ export default (state) => {
   const ulMain = document.querySelector('#main-ul');
 
   itemList.forEach((element) => {
-    const [title, link, description] = element;
+    const { title, link, description } = element;
     const id = getUniqueId(link);
     ulMain.innerHTML = `${ulMain.innerHTML}
       <li class ="list-group-item">

@@ -2,6 +2,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 import isURL from 'validator/lib/isURL';
 import { watch } from 'melanke-watchjs';
+import _ from 'lodash';
 import axios from 'axios';
 import render from './render';
 
@@ -11,7 +12,7 @@ export default () => {
     currentFeed: '',
     listFeed: [],
     inputAndSubmit: '',
-    feed: [],
+    feeds: [],
     numberList: 1,
   };
 
@@ -33,7 +34,7 @@ export default () => {
     }
   });
 
-  watch(state, 'feed', () => {
+  watch(state, 'feeds', () => {
     render(state);
   });
 
@@ -43,15 +44,17 @@ export default () => {
     if (!doc.querySelector('rss')) {
       return 'error';
     }
-    const nameFeed = doc.querySelector('title').textContent;
+    const parsNameFeed = doc.querySelector('title').textContent;
     const [...itemList] = doc.querySelectorAll('item');
     const arrayData = itemList.reduce((acc, item) => {
-      const title = item.querySelector('title').textContent;
-      const link = item.querySelector('link').textContent;
-      const description = item.querySelector('description').textContent;
-      const currentData = [title, link, description];
+      const parsTitle = item.querySelector('title').textContent;
+      const parsLink = item.querySelector('link').textContent;
+      const parsDescription = item.querySelector('description').textContent;
+      const currentData = {
+        nameFeed: parsNameFeed, title: parsTitle, link: parsLink, description: parsDescription,
+      };
       return [...acc, currentData];
-    }, [nameFeed]);
+    }, []);
     return arrayData;
   };
   const proxy = 'http://cors-anywhere.herokuapp.com/';
@@ -59,7 +62,7 @@ export default () => {
   submit.addEventListener('click', () => {
     if (state.inputCheckValid === 'valid' && !state.listFeed.includes(state.currentFeed)) {
       state.listFeed = [state.currentFeed, ...state.listFeed];
-      state.inputAndSubmit = 'disabled';
+      state.inputAndSubmit = 'processing';
       axios.get(`${proxy}${state.currentFeed}`)
         .then((response) => {
           const data = parse(response.data);
@@ -70,7 +73,7 @@ export default () => {
             state.inputAndSubmit = 'enabled';
             state.inputCheckValid = '';
             state.numberList += 1;
-            state.feed = data;
+            state.feeds = [data, ...state.feeds];
           }
         })
         .catch(() => {
@@ -85,7 +88,7 @@ export default () => {
       submit.removeAttribute('disabled', 'disabled');
       submit.innerHTML = 'Submit';
     }
-    if (state.inputAndSubmit === 'disabled') {
+    if (state.inputAndSubmit === 'processing') {
       input.setAttribute('disabled', 'disabled');
       submit.setAttribute('disabled', 'disabled');
       submit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Loading...';
@@ -133,30 +136,21 @@ export default () => {
     }
   });
 
-  const splitArray = (array, part, acc = []) => {
-    if (array.length === 0) {
-      return acc;
-    }
-    return splitArray(array.slice(part), part, [...acc, array.slice(0, part)]);
-  };
-
   const checkUpdate = (listFeed) => {
     const amountFeedArray = 10;
-    const splitListFeed = splitArray(listFeed, amountFeedArray);
+    const splitListFeed = _.chunk(listFeed, amountFeedArray);
 
-    splitListFeed.forEach((feeds) => {
-      const promises = feeds.map(feed => axios.get(`${proxy}${feed}`)
+    splitListFeed.forEach((newFeeds) => {
+      const promises = newFeeds.map(feed => axios.get(`${proxy}${feed}`)
         .then(response => parse(response.data)));
       const promise = Promise.all(promises);
       promise.then(([itemsArray]) => {
-        const [title, ...items] = itemsArray;
-        const mainFeed = document.querySelector('#list-1');
-        const [...a] = mainFeed.querySelectorAll('a');
-        const allLinksInFeed = a.map(element => element.getAttribute('href'));
+        const allLinks = state.feeds.map(element => element.map(e => e.link));
+        const newFeed = itemsArray.filter(element => _.flatten(allLinks)
+          .includes(element.link) === false);
 
-        const newFeed = items.filter(item => !allLinksInFeed.includes(item[1]));
         if (newFeed.length !== 0) {
-          state.feed = [title, ...newFeed];
+          state.feeds = [newFeed, ...state.feeds];
         }
       });
     });
