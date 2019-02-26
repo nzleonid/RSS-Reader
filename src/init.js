@@ -139,7 +139,6 @@ export default () => {
   const checkUpdate = (listFeed) => {
     const amountFeedArray = 10;
     const splitListFeed = _.chunk(listFeed, amountFeedArray);
-
     splitListFeed.forEach((newFeeds) => {
       const promises = newFeeds.map(feed => axios.get(`${proxy}${feed}`)
         .then(response => parse(response.data)));
